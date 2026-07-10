@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VM Console — McFly Academy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☁️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #0d0d10 0%, #1a1c22 100%);
+    min-height: 100vh; margin: 0; color: #f5f5f5;
+    display: flex; justify-content: center;
+    padding: 24px 16px 60px;
+  }
+  .wrap { width: 100%; max-width: 780px; }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #3a3e46; padding-bottom: 16px; margin-bottom: 22px;
+    flex-wrap: wrap; gap: 10px;
+  }
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-size: 1.3em; margin: 0;
+    letter-spacing: 1px; color: #f5f5f5; text-shadow: 0 0 10px rgba(77,200,255,0.5);
+  }
+  h1 span { color: #4dc8ff; }
+  .home-btn {
+    color: #a8adb8; text-decoration: none; border: 1px solid #3a3e46;
+    padding: 6px 14px; border-radius: 8px; font-size: 0.9em; transition: all 0.2s; white-space: nowrap;
+  }
+  .home-btn:hover { color: #4dc8ff; border-color: #4dc8ff; }
+
+  .panel {
+    background: #2a2d33; border: 1px solid #3a3e46; border-radius: 12px;
+    padding: 22px; margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-family: 'Orbitron', sans-serif; font-size: 1.05em; margin: 0 0 14px;
+    color: #4dc8ff; letter-spacing: 0.5px;
+  }
+  .panel p { color: #a8adb8; font-size: 0.85em; line-height: 1.4; margin: 0 0 14px; }
+
+  input, select {
+    width: 100%; background: #16171b; border: 1px solid #3a3e46; border-radius: 8px;
+    color: #f5f5f5; font-family: 'Share Tech Mono', monospace; font-size: 0.95em;
+    padding: 11px 13px; outline: none; transition: border-color 0.2s; margin-bottom: 12px;
+  }
+  input:focus, select:focus { border-color: #4dc8ff; }
+  input::placeholder { color: #6b7080; }
+
+  button {
+    font-family: 'Share Tech Mono', monospace; background: #16171b; color: #4dc8ff;
+    border: 1px solid #4dc8ff; border-radius: 8px; padding: 10px 18px;
+    cursor: pointer; font-size: 0.9em; transition: all 0.15s;
+  }
+  button:hover { background: #4dc8ff; color: #0d0d10; }
+  button.mini {
+    padding: 5px 10px; font-size: 0.78em; margin-left: 8px; border-radius: 6px;
+  }
+
+  #deploy-error { color: #ff8c00; font-size: 0.85em; min-height: 1.2em; margin-bottom: 10px; }
+
+  .muted { color: #a8adb8; font-size: 0.85em; }
+
+  /* --- VM / SERVICE ROWS --- */
+  .vm-row, .svc-row {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    background: #16171b; border: 1px solid #3a3e46; border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px; font-size: 0.9em;
+  }
+  .vm-row.selected { border-color: #4dc8ff; box-shadow: 0 0 0 1px #4dc8ff inset; }
+  .vm-row .state {
+    margin-left: auto; font-family: 'Share Tech Mono', monospace; font-size: 0.78em;
+    letter-spacing: 1px; color: #a8adb8;
+  }
+  .vm-row b { color: #f5f5f5; }
+
+  /* --- STATE DOTS --- */
+  .dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot.pending { background: #ff8c00; box-shadow: 0 0 6px #ff8c00; animation: dot-pulse 1s ease-in-out infinite; }
+  .dot.running { background: #39ff14; box-shadow: 0 0 6px #39ff14; }
+  .dot.stopped { background: #555; }
+  @keyframes dot-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.7); }
+  }
+
+  #svc-vm-label { font-family: 'Share Tech Mono', monospace; color: #4dc8ff; margin-bottom: 12px; font-size: 0.9em; }
+
+  /* --- FAKE STATUS PAGE --- */
+  #status-page { margin-top: 14px; }
+  .site-up, .site-down {
+    border-radius: 8px; padding: 12px 14px; font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85em; line-height: 1.5; word-break: break-word;
+  }
+  .site-up { background: rgba(57,255,20,0.08); border: 1px solid #39ff14; color: #39ff14; }
+  .site-down { background: rgba(224,54,22,0.08); border: 1px solid #e03616; color: #e03616; }
+
+  /* --- SRM QUIZ --- */
+  #srm-duty {
+    font-family: 'Share Tech Mono', monospace; font-size: 1em; color: #f5f5f5;
+    background: #16171b; border: 1px solid #3a3e46; border-radius: 8px;
+    padding: 14px; margin-bottom: 14px; min-height: 2.4em;
+  }
+  #srm-result { margin-top: 12px; font-size: 0.88em; line-height: 1.4; min-height: 1.4em; }
+  #srm-score { margin-top: 8px; font-family: 'Share Tech Mono', monospace; color: #a8adb8; font-size: 0.85em; }
+
+  footer { text-align: center; color: #6b7080; font-size: 0.8em; margin-top: 10px; }
+
+  /* --- fire-trail keyframes, copied from index.html (Task 2 easter egg) --- */
+  @keyframes fire-trail {
+    0%   { box-shadow: -40px 0 30px -10px rgba(255,140,0,0.9), -80px 0 50px -20px rgba(224,54,22,0.7); transform: translateX(30px); }
+    100% { box-shadow: 0 0 0 0 rgba(255,140,0,0), 0 0 0 0 rgba(224,54,22,0); transform: translateX(0); }
+  }
+  body.speed-mode .panel { animation: fire-trail 0.9s ease-out; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.05em; }
+    .vm-row .state { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>☁️ <span>HILL VALLEY CLOUD SERVICES</span></h1>
+    <a href="index.html" class="home-btn">← Hub</a>
+  </header>
+
+  <div class="panel">
+    <h2>Deploy a Virtual Machine</h2>
+    <input id="vm-name" placeholder="vm name (lowercase, digits, dashes)" autocomplete="off">
+    <select id="vm-os">
+      <option>Ubuntu 24.04</option><option>Windows Server 2025</option><option>Rocky Linux 9</option>
+    </select>
+    <select id="vm-size">
+      <option value="S">S — 1 vCPU / 1 GB</option><option value="M">M — 2 vCPU / 4 GB</option><option value="L">L — 4 vCPU / 16 GB</option>
+    </select>
+    <button id="deploy-btn">Deploy 🚀</button>
+    <div id="deploy-error"></div>
+    <div id="vm-list"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Service Manager</h2>
+    <p>Select a running VM above, then manage its services. Actions have consequences.</p>
+    <div id="svc-vm-label">No VM selected.</div>
+    <div id="svc-list"></div>
+    <div id="status-page"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Shared Responsibility Model — Who Owns It?</h2>
+    <div id="srm-duty"></div>
+    <button id="srm-provider">Cloud Provider 🏢</button>
+    <button id="srm-customer">Customer (You) 🧑‍💻</button>
+    <div id="srm-result"></div>
+    <div id="srm-score"></div>
+  </div>
+
+  <footer>All state is in-memory — refreshing this page resets every VM and score.</footer>
+</div>
+
+<script>
+// --- STATE ---
+let vms = [];          // {id, name, os, size, state: 'pending'|'running'|'stopped', services: {web,ssh,dns: bool}}
+let nextId = 1;
+let selectedVm = null;
+
+// --- DEPLOY ---
+document.getElementById("deploy-btn").addEventListener("click", () => {
+  const name = document.getElementById("vm-name").value.trim().toLowerCase();
+  const err = document.getElementById("deploy-error");
+  if (!/^[a-z][a-z0-9-]{1,29}$/.test(name)) { err.textContent = "⚠️ Name must start with a letter; lowercase letters, digits, dashes only (2–30 chars)."; return; }
+  if (vms.some(v => v.name === name)) { err.textContent = "⚠️ A VM with that name already exists."; return; }
+  err.textContent = "";
+  const vm = { id: nextId++, name, os: document.getElementById("vm-os").value,
+               size: document.getElementById("vm-size").value, state: "pending",
+               services: { web: true, ssh: true, dns: true } };
+  vms.push(vm);
+  renderVms();
+  // Simulated provisioning: pending -> running after 3s
+  setTimeout(() => { vm.state = "running"; renderVms(); renderServices(); }, 3000);
+  document.getElementById("vm-name").value = "";
+
+  // EASTER EGG: deploying a VM named "delorean"
+  if (name === "delorean") {
+    document.body.classList.remove("speed-mode");
+    void document.body.offsetWidth;
+    document.body.classList.add("speed-mode");   // reuse the fire-trail keyframes from the hub, copied into this page's CSS
+  }
+});
+
+// --- VM LIST (state dot: pending=amber pulse, running=green, stopped=gray) ---
+function renderVms() {
+  const box = document.getElementById("vm-list");
+  box.innerHTML = vms.length ? "" : "<p class='muted'>No VMs deployed yet.</p>";
+  vms.forEach(vm => {
+    const row = document.createElement("div");
+    row.className = "vm-row" + (selectedVm === vm ? " selected" : "");
+    row.innerHTML = `<span class="dot ${vm.state}"></span>
+      <b>${vm.name}</b> <span class="muted">${vm.os} · ${vm.size}</span>
+      <span class="state">${vm.state.toUpperCase()}</span>`;
+    const btns = document.createElement("span");
+    if (vm.state === "running") btns.append(mkBtn("Stop", () => { vm.state = "stopped"; refresh(); }),
+                                            mkBtn("Select", () => { selectedVm = vm; refresh(); }));
+    if (vm.state === "stopped") btns.append(mkBtn("Start", () => { vm.state = "pending"; renderVms();
+                                              setTimeout(() => { vm.state = "running"; refresh(); }, 1500); }),
+                                            mkBtn("Delete", () => { vms = vms.filter(v => v !== vm);
+                                              if (selectedVm === vm) selectedVm = null; refresh(); }));
+    row.appendChild(btns);
+    box.appendChild(row);
+  });
+}
+function mkBtn(label, fn) { const b = document.createElement("button"); b.textContent = label; b.className = "mini"; b.addEventListener("click", fn); return b; }
+function refresh() { renderVms(); renderServices(); }
+
+// --- SERVICES (only on the selected, running VM) ---
+const SVC_META = { web: "web (nginx) — serves the status page", ssh: "ssh (sshd) — remote admin access", dns: "dns (named) — name resolution" };
+function renderServices() {
+  const label = document.getElementById("svc-vm-label");
+  const list = document.getElementById("svc-list");
+  const page = document.getElementById("status-page");
+  list.innerHTML = "";
+  if (!selectedVm || selectedVm.state !== "running") {
+    label.textContent = "No running VM selected."; page.innerHTML = ""; return;
+  }
+  label.textContent = `Managing: ${selectedVm.name}`;
+  Object.keys(SVC_META).forEach(svc => {
+    const on = selectedVm.services[svc];
+    const row = document.createElement("div");
+    row.className = "svc-row";
+    row.innerHTML = `<span class="dot ${on ? "running" : "stopped"}"></span> ${SVC_META[svc]} `;
+    row.append(
+      mkBtn(on ? "Stop" : "Start", () => { selectedVm.services[svc] = !on; renderServices(); }),
+      mkBtn("Restart", () => { selectedVm.services[svc] = false; renderServices();
+                               setTimeout(() => { if (selectedVm) { selectedVm.services[svc] = true; renderServices(); } }, 1200); })
+    );
+    list.appendChild(row);
+  });
+  // CONSEQUENCE: the fake status page reflects the web service
+  page.innerHTML = selectedVm.services.web
+    ? `<div class="site-up">🌐 http://${selectedVm.name}.hillvalley.cloud — <b>200 OK</b> — "Save the clock tower!"</div>`
+    : `<div class="site-down">🌐 http://${selectedVm.name}.hillvalley.cloud — <b>CONNECTION REFUSED</b> — the web service is down.</div>`;
+}
+
+// --- SRM QUIZ ---
+const SRM = [
+  { duty: "Physical security of the datacenter", owner: "provider", why: "You never touch the building. The provider guards racks, power, and cooling." },
+  { duty: "Patching the guest OS on your IaaS VM", owner: "customer", why: "Inside the VM is yours — OS patches, packages, and configs are on you." },
+  { duty: "Configuring security-group / firewall rules for your VM", owner: "customer", why: "You define what traffic reaches your workloads." },
+  { duty: "Maintaining the physical hypervisor hosts", owner: "provider", why: "The virtualization layer and hardware beneath it belong to the provider." },
+  { duty: "Classifying and protecting the data you upload", owner: "customer", why: "Your data is ALWAYS your responsibility, in every service model." },
+  { duty: "Replacing failed disk drives", owner: "provider", why: "Hardware failures are invisible to you — the provider swaps parts." },
+  { duty: "Managing IAM users and their permissions in your account", owner: "customer", why: "Who in YOUR org can do what is your call and your risk." },
+  { duty: "Keeping the region's network backbone online", owner: "provider", why: "The provider owns connectivity between its datacenters." },
+  { duty: "Enabling MFA on your admin accounts", owner: "customer", why: "Account hygiene inside your tenant is customer-side." },
+  { duty: "Patching the hypervisor software itself", owner: "provider", why: "You can't even see the hypervisor — the provider patches it." },
+];
+let srmIdx = 0, srmScore = 0, srmSeen = 0;
+let srmOrder = [...SRM].sort(() => Math.random() - 0.5);
+function renderSrm() { document.getElementById("srm-duty").textContent = `"${srmOrder[srmIdx].duty}"`; document.getElementById("srm-result").textContent = ""; }
+function answerSrm(choice) {
+  const q = srmOrder[srmIdx], r = document.getElementById("srm-result");
+  srmSeen++;
+  if (choice === q.owner) { srmScore++; r.textContent = `✔ Right — ${q.why}`; r.style.color = "#39ff14"; }
+  else { r.textContent = `✘ It's the ${q.owner}. ${q.why}`; r.style.color = "#e03616"; }
+  document.getElementById("srm-score").textContent = `Score: ${srmScore}/${srmSeen}`;
+  srmIdx = (srmIdx + 1) % srmOrder.length;
+  if (srmIdx === 0) srmOrder.sort(() => Math.random() - 0.5);
+  setTimeout(renderSrm, 2600);
+}
+document.getElementById("srm-provider").addEventListener("click", () => answerSrm("provider"));
+document.getElementById("srm-customer").addEventListener("click", () => answerSrm("customer"));
+
+renderVms(); renderServices(); renderSrm();
+</script>
+</body>
+</html>
