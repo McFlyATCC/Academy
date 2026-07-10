@@ -99,6 +99,29 @@
     font-weight: bold; border: 1px solid #3a3e46; animation: slideDown 0.5s ease;
   }
   @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
+
+  /* --- EASTER EGG MODES --- */
+  /* flux: pulsing blue glow */
+  @keyframes flux-pulse {
+    0%,100% { border-top-color: #4dc8ff; box-shadow: 0 0 8px rgba(77,200,255,0.4); }
+    50%     { border-top-color: #bfeaff; box-shadow: 0 0 24px rgba(77,200,255,0.9); }
+  }
+  body.flux-mode .feature-card { animation: flux-pulse 1.6s ease-in-out infinite; }
+  body.flux-mode h1 { color: #4dc8ff; text-shadow: 0 0 18px rgba(77,200,255,0.7); }
+
+  /* 1955: sepia retro */
+  body.retro-mode { filter: sepia(0.85) contrast(1.05); }
+
+  /* 88mph: fire trails sweep */
+  @keyframes fire-trail {
+    0%   { box-shadow: -40px 0 30px -10px rgba(255,140,0,0.9), -80px 0 50px -20px rgba(224,54,22,0.7); transform: translateX(30px); }
+    100% { box-shadow: 0 0 0 0 rgba(255,140,0,0), 0 0 0 0 rgba(224,54,22,0); transform: translateX(0); }
+  }
+  body.speed-mode .feature-card { animation: fire-trail 0.9s ease-out; }
+
+  /* lightning strike flash */
+  @keyframes lightning { 0% { filter: brightness(1); } 10% { filter: brightness(3); } 20% { filter: brightness(1); } 30% { filter: brightness(2.4); } 45% { filter: brightness(1); } }
+  body.lightning { animation: lightning 0.8s linear; }
 </style>
 </head>
 <body>
@@ -173,6 +196,86 @@
   }
   tickClock();
   setInterval(tickClock, 1000);
+
+  // --- CONSOLE ART ---
+  console.log(String.raw`
+        __---~~~~--__
+   __--~   MCFLY    ~--__
+  |[]___________________[]|
+  |  ACADEMY  --  88 MPH  |
+   \______________________/
+    (o)              (o)
+
+GREAT SCOTT! Hidden cheats exist.
+Try typing things a time traveler would type...`);
+
+  // --- TOAST ---
+  function showToast(msg, color) {
+    const t = document.getElementById("egg-toast");
+    t.innerText = msg; t.style.borderColor = color; t.style.color = color;
+    t.style.display = "block";
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(() => { t.style.display = "none"; }, 5000);
+  }
+
+  // --- KEY BUFFER CHEATS ---
+  let keyBuffer = "";
+  document.addEventListener("keydown", (e) => {
+    if (e.key.length === 1) keyBuffer += e.key.toLowerCase();
+    if (keyBuffer.length > 20) keyBuffer = keyBuffer.slice(-20);
+
+    if (keyBuffer.endsWith("88mph")) {
+      document.body.classList.remove("speed-mode");
+      void document.body.offsetWidth;            // restart animation
+      document.body.classList.add("speed-mode");
+      showToast("🔥 88 MILES PER HOUR! TEMPORAL DISPLACEMENT ACTIVATED", "#ff8c00");
+      keyBuffer = "";
+    }
+    if (keyBuffer.endsWith("flux")) {
+      document.body.classList.toggle("flux-mode");
+      showToast(document.body.classList.contains("flux-mode")
+        ? "⚡ FLUX CAPACITOR... FLUXING" : "Flux capacitor disengaged", "#4dc8ff");
+      keyBuffer = "";
+    }
+    if (keyBuffer.endsWith("1955")) {
+      document.body.classList.toggle("retro-mode");
+      showToast(document.body.classList.contains("retro-mode")
+        ? "📻 WELCOME TO 1955. Watch out for your parents." : "Back to the future.", "#ff8c00");
+      keyBuffer = "";
+    }
+    if (keyBuffer.endsWith("biff")) {
+      showToast("👊 Hello? Hello? Anybody home? Think, McFly, THINK!", "#e03616");
+      keyBuffer = "";
+    }
+  });
+
+  // --- KONAMI CODE ---
+  const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+  let kPos = 0;
+  document.addEventListener("keydown", (e) => {
+    if (e.key === KONAMI[kPos]) {
+      if (++kPos === KONAMI.length) {
+        showToast("🌟 GREAT SCOTT! 1.21 GIGAWATTS! 🌟", "#39ff14");
+        const c = document.querySelector(".container");
+        c.style.transition = "transform 1s"; c.style.transform = "rotate(360deg)";
+        setTimeout(() => { c.style.transform = "none"; }, 1000);
+        kPos = 0;
+      }
+    } else { kPos = 0; }
+  });
+
+  // --- LIGHTNING (click title) ---
+  document.getElementById("main-title").addEventListener("click", () => {
+    document.body.classList.remove("lightning");
+    void document.body.offsetWidth;
+    document.body.classList.add("lightning");
+    showToast("⛈️ CLOCK TOWER STRUCK — 1.21 GW DELIVERED", "#f5f5f5");
+  });
+
+  // --- ICON WIGGLE (click car) ---
+  document.getElementById("main-icon").addEventListener("click", () => {
+    showToast("🚗 If my calculations are correct... you'll see some serious 💩", "#4dc8ff");
+  });
 </script>
 </body>
 </html>
