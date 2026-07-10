@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Lab — McFly Academy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #0d0d10 0%, #1a1c22 100%);
+    min-height: 100vh; margin: 0; color: #f5f5f5;
+    display: flex; justify-content: center;
+    padding: 24px 16px 60px;
+  }
+  .wrap { width: 100%; max-width: 760px; }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #3a3e46; padding-bottom: 16px; margin-bottom: 22px;
+    flex-wrap: wrap; gap: 10px;
+  }
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-size: 1.35em; margin: 0;
+    letter-spacing: 1px; color: #f5f5f5; text-shadow: 0 0 10px rgba(77,200,255,0.5);
+  }
+  h1 span { color: #4dc8ff; }
+  .home-btn {
+    color: #a8adb8; text-decoration: none; border: 1px solid #3a3e46;
+    padding: 6px 14px; border-radius: 8px; font-size: 0.9em; transition: all 0.2s; white-space: nowrap;
+  }
+  .home-btn:hover { color: #4dc8ff; border-color: #4dc8ff; }
+
+  .panel {
+    background: #2a2d33; border: 1px solid #3a3e46; border-radius: 12px;
+    padding: 22px; margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-family: 'Orbitron', sans-serif; font-size: 1.05em; margin: 0 0 14px;
+    color: #4dc8ff; letter-spacing: 0.5px;
+  }
+  .panel h3 {
+    font-family: 'Orbitron', sans-serif; font-size: 0.85em; margin: 0 0 8px;
+    color: #a8adb8; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .panel p { color: #a8adb8; font-size: 0.85em; line-height: 1.4; margin: 8px 0 0; }
+
+  input {
+    width: 100%; background: #16171b; border: 1px solid #3a3e46; border-radius: 8px;
+    color: #f5f5f5; font-family: 'Share Tech Mono', monospace; font-size: 1em;
+    padding: 12px 14px; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: #4dc8ff; }
+  input::placeholder { color: #6b7080; }
+
+  .duo { display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+  .half {
+    flex: 1 1 240px; min-width: 0; background: #16171b; border: 1px solid #3a3e46;
+    border-radius: 8px; padding: 14px;
+  }
+
+  code {
+    display: block; font-family: 'Share Tech Mono', monospace; font-size: 0.95em;
+    color: #4dc8ff; word-break: break-all; overflow-wrap: anywhere;
+    background: #0d0d10; border-radius: 6px; padding: 10px 12px; line-height: 1.4;
+  }
+
+  #pw-verdict { margin-top: 14px; font-size: 1em; font-weight: bold; color: #a8adb8; min-height: 1.4em; }
+  #pw-time { margin-top: 6px; font-family: 'Share Tech Mono', monospace; color: #a8adb8; font-size: 0.9em; min-height: 1.2em; }
+
+  #word-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+  #challenge-result { min-height: 1.4em; font-size: 0.95em; margin-bottom: 12px; word-break: break-word; }
+
+  button {
+    font-family: 'Share Tech Mono', monospace; background: #16171b; color: #4dc8ff;
+    border: 1px solid #4dc8ff; border-radius: 8px; padding: 10px 16px;
+    cursor: pointer; font-size: 0.9em; transition: all 0.15s;
+  }
+  button:hover { background: #4dc8ff; color: #0d0d10; }
+
+  #new-challenge { color: #f5f5f5; border-color: #3a3e46; }
+  #new-challenge:hover { background: #3a3e46; color: #f5f5f5; }
+
+  footer { text-align: center; color: #6b7080; font-size: 0.8em; margin-top: 10px; }
+
+  @media (max-width: 480px) {
+    .duo { flex-direction: column; }
+    h1 { font-size: 1.1em; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🔐 <span>HASH LAB</span></h1>
+    <a href="index.html" class="home-btn">← Hub</a>
+  </header>
+
+  <div class="panel">
+    <h2>Hashing ≠ Encoding</h2>
+    <input id="ht-input" placeholder="Type anything..." autocomplete="off">
+    <div class="duo">
+      <div class="half">
+        <h3>SHA-256 (one-way hash)</h3>
+        <code id="sha-out">—</code>
+        <p>Fixed 64 hex chars, no matter the input. Cannot be reversed.</p>
+      </div>
+      <div class="half">
+        <h3>Base64 (reversible encoding)</h3>
+        <code id="b64-out">—</code>
+        <p>Grows with input. Anyone can decode it — this is NOT security.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Password Auditor</h2>
+    <input id="pw-input" placeholder="Test a password (nothing is sent anywhere)" autocomplete="off">
+    <div id="pw-verdict">—</div>
+    <div id="pw-time">—</div>
+  </div>
+
+  <div class="panel">
+    <h2>Hash Match Challenge</h2>
+    <p>One of these words produced the hash below. Which one?</p>
+    <code id="challenge-hash">—</code>
+    <div id="word-buttons"></div>
+    <div id="challenge-result"></div>
+    <button id="new-challenge">New Challenge 🔁</button>
+  </div>
+
+  <footer>Everything on this page runs locally in your browser. Nothing is transmitted anywhere.</footer>
+</div>
+
+<script>
+// --- SHARED: SHA-256 hex via Web Crypto ---
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// --- PANEL 1: live hash vs. encode ---
+document.getElementById("ht-input").addEventListener("input", async (e) => {
+  const v = e.target.value;
+  document.getElementById("sha-out").textContent = v ? await sha256Hex(v) : "—";
+  // btoa fails on non-Latin1 chars (emoji etc.) — encode to UTF-8 bytes first
+  document.getElementById("b64-out").textContent =
+    v ? btoa(String.fromCharCode(...new TextEncoder().encode(v))) : "—";
+});
+
+// --- PANEL 2: password auditor ---
+// Entropy estimate: charset size ^ length, at 10 billion guesses/second (offline GPU attack).
+function auditPassword(pw) {
+  if (!pw) return { verdict: "—", time: "—", color: "#a8adb8" };
+  let charset = 0;
+  if (/[a-z]/.test(pw)) charset += 26;
+  if (/[A-Z]/.test(pw)) charset += 26;
+  if (/[0-9]/.test(pw)) charset += 10;
+  if (/[^a-zA-Z0-9]/.test(pw)) charset += 33;
+  const seconds = Math.pow(charset, pw.length) / 1e10;
+
+  const COMMON = ["password","123456","letmein","qwerty","monkey","dragon","baseball","111111","abc123","biff"];
+  if (COMMON.includes(pw.toLowerCase()))
+    return { verdict: "☠️ IT'S IN EVERY WORDLIST. Biff doesn't even need to guess.", time: "instant", color: "#e03616" };
+
+  const t = seconds < 1 ? "instantly"
+    : seconds < 60 ? `${Math.ceil(seconds)} seconds`
+    : seconds < 3600 ? `${Math.ceil(seconds/60)} minutes`
+    : seconds < 86400 ? `${Math.ceil(seconds/3600)} hours`
+    : seconds < 31557600 ? `${Math.ceil(seconds/86400)} days`
+    : seconds < 3.16e10 ? `${Math.ceil(seconds/31557600)} years`
+    : "longer than the age of the universe";
+
+  if (seconds < 60)        return { verdict: "☠️ Biff would guess this in 2 seconds.", time: `Crack time: ${t}`, color: "#e03616" };
+  if (seconds < 86400)     return { verdict: "⚠️ Crackable over lunch. Add length and symbols.", time: `Crack time: ${t}`, color: "#ff8c00" };
+  if (seconds < 3.16e9)    return { verdict: "🙂 Decent — but longer is stronger.", time: `Crack time: ${t}`, color: "#4dc8ff" };
+  return { verdict: "🛡️ GREAT SCOTT! Even Doc's supercomputer gives up.", time: `Crack time: ${t}`, color: "#39ff14" };
+}
+document.getElementById("pw-input").addEventListener("input", (e) => {
+  const r = auditPassword(e.target.value);
+  const v = document.getElementById("pw-verdict"), t = document.getElementById("pw-time");
+  v.textContent = r.verdict; v.style.color = r.color; t.textContent = r.time;
+});
+
+// --- PANEL 3: hash match challenge ---
+const WORDLIST = ["delorean","plutonium","hoverboard","almanac","gigawatt","clocktower","hillvalley","fluxcapacitor","biffco","einstein","calvin","tannen"];
+let challengeWord = "";
+async function newChallenge() {
+  const pool = [...WORDLIST].sort(() => Math.random() - 0.5).slice(0, 4);
+  challengeWord = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById("challenge-hash").textContent = await sha256Hex(challengeWord);
+  document.getElementById("challenge-result").textContent = "";
+  const box = document.getElementById("word-buttons");
+  box.innerHTML = "";
+  pool.forEach(w => {
+    const b = document.createElement("button");
+    b.textContent = w;
+    b.addEventListener("click", async () => {
+      const r = document.getElementById("challenge-result");
+      if (w === challengeWord) { r.textContent = `✔ Correct — sha256("${w}") matches. Same input, same hash, every time.`; r.style.color = "#39ff14"; }
+      else { r.textContent = `✘ Nope — sha256("${w}") starts ${(await sha256Hex(w)).slice(0,12)}… which doesn't match.`; r.style.color = "#e03616"; }
+    });
+    box.appendChild(b);
+  });
+}
+document.getElementById("new-challenge").addEventListener("click", newChallenge);
+newChallenge();
+
+// --- EASTER EGG: hashing the word "password" anywhere in panel 1 ---
+document.getElementById("ht-input").addEventListener("input", (e) => {
+  if (e.target.value.toLowerCase() === "password")
+    document.getElementById("pw-verdict").textContent = "👀 Really? REALLY, McFly?";
+});
+</script>
+</body>
+</html>
