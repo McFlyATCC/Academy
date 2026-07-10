@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McFly Academy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #0d0d10 0%, #1a1c22 100%);
+    min-height: 100vh; color: #f5f5f5; margin: 0; padding-bottom: 50px;
+    transition: background 0.5s ease, filter 0.3s;
+  }
+
+  /* --- HEADER --- */
+  .header-section {
+    background: rgba(0,0,0,0.55); padding: 36px 20px 28px; text-align: center;
+    border-bottom: 2px solid #ff8c00; margin-bottom: 40px; user-select: none;
+  }
+  .main-icon { font-size: 4em; display: inline-block; cursor: pointer; transition: transform 0.2s; }
+  .main-icon:active { transform: scale(0.9); }
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-size: 2.8em; margin: 10px 0 4px;
+    color: #ff8c00; letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
+    text-shadow: 0 0 18px rgba(255,140,0,0.45); transition: color 0.3s;
+  }
+  p.subtitle { color: #a8adb8; font-size: 1.15em; margin: 0 0 24px; font-style: italic; }
+
+  /* --- TIME CIRCUITS --- */
+  .time-circuits {
+    display: inline-flex; flex-direction: column; gap: 6px;
+    background: #111; border: 2px solid #3a3e46; border-radius: 10px;
+    padding: 12px 18px; box-shadow: inset 0 0 20px #000;
+  }
+  .circuit-row { display: flex; align-items: center; gap: 14px; }
+  .circuit-label {
+    font-family: 'Orbitron', sans-serif; font-size: 0.55em; letter-spacing: 2px;
+    color: #a8adb8; width: 150px; text-align: right; text-transform: uppercase;
+  }
+  .circuit-value {
+    font-family: 'Share Tech Mono', monospace; font-size: 1.25em; letter-spacing: 3px;
+    padding: 2px 10px; border-radius: 4px; background: #000; min-width: 220px; text-align: center;
+  }
+  .circuit-red   { color: #e03616; text-shadow: 0 0 8px rgba(224,54,22,0.8); }
+  .circuit-green { color: #39ff14; text-shadow: 0 0 8px rgba(57,255,20,0.8); }
+  .circuit-amber { color: #ff8c00; text-shadow: 0 0 8px rgba(255,140,0,0.8); }
+
+  /* --- LAYOUT --- */
+  .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  .category-header {
+    font-family: 'Orbitron', sans-serif; font-size: 1.3em; color: #4dc8ff;
+    border-bottom: 2px solid #3a3e46; padding-bottom: 10px; margin: 40px 0 20px;
+    text-transform: uppercase; letter-spacing: 3px;
+  }
+  .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+
+  /* --- CARDS --- */
+  .feature-card {
+    background: linear-gradient(145deg, #232529, #2a2d33);
+    border: 1px solid #3a3e46; border-top: 4px solid #555; border-radius: 12px;
+    padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .feature-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
+  .feature-card h2 { margin: 0 0 10px; color: #fff; font-size: 1.35em; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+  .feature-card p { color: #a8adb8; margin-bottom: 25px; line-height: 1.5; font-size: 0.95em; flex-grow: 1; }
+  .btn-main {
+    display: inline-block; padding: 10px 20px; background: #444; color: #fff;
+    text-decoration: none; border-radius: 6px; font-weight: bold; text-align: center; transition: all 0.2s;
+  }
+  .btn-main:hover { filter: brightness(1.25); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+
+  /* Category accents */
+  .cat-linux { border-top-color: #39ff14; }
+  .btn-linux { background: linear-gradient(135deg, #1f7a1f 0%, #0e3d0e 100%); border: 1px solid #39ff14; }
+  .cat-security { border-top-color: #e03616; }
+  .btn-security { background: linear-gradient(135deg, #e03616 0%, #7a1d0c 100%); }
+  .cat-cloud { border-top-color: #4dc8ff; }
+  .btn-cloud { background: linear-gradient(135deg, #1c7fb8 0%, #0d3f5c 100%); }
+
+  /* Coming-soon: an unset time circuit */
+  .feature-card.coming-soon { opacity: 0.55; border-top-color: #3a3e46; }
+  .coming-soon .led-unset {
+    font-family: 'Share Tech Mono', monospace; color: #e03616; background: #000;
+    padding: 2px 10px; border-radius: 4px; letter-spacing: 3px;
+    animation: led-flicker 2.4s infinite;
+  }
+  @keyframes led-flicker { 0%,92% { opacity: 1; } 94% { opacity: 0.2; } 96% { opacity: 1; } 98% { opacity: 0.3; } 100% { opacity: 1; } }
+  .coming-soon .btn-main { background: #222; color: #666; pointer-events: none; border: 1px solid #3a3e46; }
+
+  /* --- TOAST (used by Task 2 scripts) --- */
+  #egg-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: #111; color: #fff; padding: 10px 22px; border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.6); display: none; z-index: 1000;
+    font-weight: bold; border: 1px solid #3a3e46; animation: slideDown 0.5s ease;
+  }
+  @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
+</style>
+</head>
+<body>
+
+<div id="egg-toast">Easter Egg Activated!</div>
+
+<div class="header-section">
+  <div class="main-icon" id="main-icon">🚗</div>
+  <h1 id="main-title">McFly Academy</h1>
+  <p class="subtitle">Roads? Where we're going, we don't need roads.</p>
+  <div class="time-circuits">
+    <div class="circuit-row"><span class="circuit-label">Destination Time</span><span class="circuit-value circuit-red">OCT 26 1985 09:00</span></div>
+    <div class="circuit-row"><span class="circuit-label">Present Time</span><span class="circuit-value circuit-green" id="present-time">--- -- ---- --:--</span></div>
+    <div class="circuit-row"><span class="circuit-label">Last Time Departed</span><span class="circuit-value circuit-amber">NOV 05 1955 06:15</span></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="category-header">Linux Administration</div>
+  <div class="grid-layout">
+    <div class="feature-card cat-linux">
+      <h2>Linux Command Trainer</h2>
+      <p>The DeLorean's onboard computer. Type the right command for each task — permissions, files, users, processes.</p>
+      <a href="linux-trainer.html" class="btn-main btn-linux">Power Up 🖥️</a>
+    </div>
+    <div class="feature-card coming-soon">
+      <h2>Filesystem Navigator</h2>
+      <p>Explore a simulated directory tree. Destination not yet set.</p>
+      <span class="led-unset">-- -- ---- --:--</span>
+    </div>
+  </div>
+
+  <div class="category-header">Security</div>
+  <div class="grid-layout">
+    <div class="feature-card cat-security">
+      <h2>Hash Lab</h2>
+      <p>Hashing vs. encoding, live. Audit password strength — would Biff crack yours in 2 seconds?</p>
+      <a href="hash-lab.html" class="btn-main btn-security">Enter Lab 🔐</a>
+    </div>
+    <div class="feature-card coming-soon">
+      <h2>CIA Triad Trainer</h2>
+      <p>Confidentiality, Integrity, Availability drills. Destination not yet set.</p>
+      <span class="led-unset">-- -- ---- --:--</span>
+    </div>
+  </div>
+
+  <div class="category-header">Windows, Cloud &amp; Virtualization</div>
+  <div class="grid-layout">
+    <div class="feature-card cat-cloud">
+      <h2>VM Console</h2>
+      <p>Hill Valley Cloud Services. Deploy VMs, manage services, and master the Shared Responsibility Model.</p>
+      <a href="vm-console.html" class="btn-main btn-cloud">Launch Portal ☁️</a>
+    </div>
+    <div class="feature-card coming-soon">
+      <h2>Active Directory Sim</h2>
+      <p>Users, groups, and OUs in a fake domain. Destination not yet set.</p>
+      <span class="led-unset">-- -- ---- --:--</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Present Time live clock — e.g. "JUL 09 2026 14:32"
+  const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  function tickClock() {
+    const n = new Date();
+    const pad = v => String(v).padStart(2, "0");
+    document.getElementById("present-time").textContent =
+      `${MONTHS[n.getMonth()]} ${pad(n.getDate())} ${n.getFullYear()} ${pad(n.getHours())}:${pad(n.getMinutes())}`;
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+</script>
+</body>
+</html>
