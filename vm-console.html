@@ -230,16 +230,17 @@ function renderServices() {
   if (!selectedVm || selectedVm.state !== "running") {
     label.textContent = "No running VM selected."; page.innerHTML = ""; return;
   }
+  const vm = selectedVm;
   label.textContent = `Managing: ${selectedVm.name}`;
   Object.keys(SVC_META).forEach(svc => {
-    const on = selectedVm.services[svc];
+    const on = vm.services[svc];
     const row = document.createElement("div");
     row.className = "svc-row";
     row.innerHTML = `<span class="dot ${on ? "running" : "stopped"}"></span> ${SVC_META[svc]} `;
     row.append(
-      mkBtn(on ? "Stop" : "Start", () => { selectedVm.services[svc] = !on; renderServices(); }),
-      mkBtn("Restart", () => { selectedVm.services[svc] = false; renderServices();
-                               setTimeout(() => { if (selectedVm) { selectedVm.services[svc] = true; renderServices(); } }, 1200); })
+      mkBtn(on ? "Stop" : "Start", () => { vm.services[svc] = !on; renderServices(); }),
+      mkBtn("Restart", () => { vm.services[svc] = false; renderServices();
+                               setTimeout(() => { vm.services[svc] = true; if (selectedVm === vm) renderServices(); }, 1200); })
     );
     list.appendChild(row);
   });
@@ -263,9 +264,12 @@ const SRM = [
   { duty: "Patching the hypervisor software itself", owner: "provider", why: "You can't even see the hypervisor — the provider patches it." },
 ];
 let srmIdx = 0, srmScore = 0, srmSeen = 0;
+let srmLocked = false;
 let srmOrder = [...SRM].sort(() => Math.random() - 0.5);
 function renderSrm() { document.getElementById("srm-duty").textContent = `"${srmOrder[srmIdx].duty}"`; document.getElementById("srm-result").textContent = ""; }
 function answerSrm(choice) {
+  if (srmLocked) return;
+  srmLocked = true;
   const q = srmOrder[srmIdx], r = document.getElementById("srm-result");
   srmSeen++;
   if (choice === q.owner) { srmScore++; r.textContent = `✔ Right — ${q.why}`; r.style.color = "#39ff14"; }
@@ -273,7 +277,7 @@ function answerSrm(choice) {
   document.getElementById("srm-score").textContent = `Score: ${srmScore}/${srmSeen}`;
   srmIdx = (srmIdx + 1) % srmOrder.length;
   if (srmIdx === 0) srmOrder.sort(() => Math.random() - 0.5);
-  setTimeout(renderSrm, 2600);
+  setTimeout(() => { srmLocked = false; renderSrm(); }, 2600);
 }
 document.getElementById("srm-provider").addEventListener("click", () => answerSrm("provider"));
 document.getElementById("srm-customer").addEventListener("click", () => answerSrm("customer"));

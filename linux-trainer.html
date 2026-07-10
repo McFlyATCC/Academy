@@ -30,7 +30,7 @@
   .prompt-row { display: flex; align-items: center; gap: 8px; background: #000; border: 1px solid #1f7a1f; border-radius: 8px; padding: 10px 14px; }
   .prompt-row .ps1 { color: #ff8c00; white-space: nowrap; }
   #cmd-input { flex: 1; background: transparent; border: none; outline: none; color: #39ff14; font-family: inherit; font-size: 1.05em; caret-color: #39ff14; }
-  #feedback { margin-top: 16px; min-height: 70px; padding: 12px; border-radius: 8px; line-height: 1.5; }
+  #feedback { margin-top: 16px; min-height: 70px; padding: 12px; border-radius: 8px; line-height: 1.5; white-space: pre-line; }
   #feedback.ok  { background: rgba(57,255,20,0.08); border: 1px solid #1f7a1f; color: #39ff14; }
   #feedback.bad { background: rgba(224,54,22,0.10); border: 1px solid #7a1d0c; color: #ff9c8a; }
   .btn-row { margin-top: 16px; display: flex; gap: 10px; }
@@ -69,7 +69,7 @@ const QUESTIONS = [
   { task: "Print the full path of the directory you're currently in.",
     accept: ["pwd"], answer: "pwd", why: "pwd = print working directory." },
   { task: "List ALL files in the current directory, including hidden ones.",
-    accept: ["ls -a", "ls -la", "ls -al", "ls --all", "ls -a"], answer: "ls -a",
+    accept: ["ls -a", "ls -la", "ls -al", "ls --all"], answer: "ls -a",
     why: "-a shows dotfiles; -la adds the long listing." },
   { task: "Jump straight to your home directory.",
     accept: ["cd", "cd ~", "cd $home"], answer: "cd ~", why: "cd with no argument (or ~) goes home." },

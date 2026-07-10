@@ -141,9 +141,12 @@ async function sha256Hex(text) {
 }
 
 // --- PANEL 1: live hash vs. encode ---
+let htGen = 0;
 document.getElementById("ht-input").addEventListener("input", async (e) => {
+  const gen = ++htGen;
   const v = e.target.value;
-  document.getElementById("sha-out").textContent = v ? await sha256Hex(v) : "—";
+  const hash = v ? await sha256Hex(v) : "—";
+  if (gen === htGen) document.getElementById("sha-out").textContent = hash;
   // btoa fails on non-Latin1 chars (emoji etc.) — encode to UTF-8 bytes first
   document.getElementById("b64-out").textContent =
     v ? btoa(String.fromCharCode(...new TextEncoder().encode(v))) : "—";
@@ -186,31 +189,39 @@ document.getElementById("pw-input").addEventListener("input", (e) => {
 // --- PANEL 3: hash match challenge ---
 const WORDLIST = ["delorean","plutonium","hoverboard","almanac","gigawatt","clocktower","hillvalley","fluxcapacitor","biffco","einstein","calvin","tannen"];
 let challengeWord = "";
+let chGen = 0;
 async function newChallenge() {
+  const gen = ++chGen;
   const pool = [...WORDLIST].sort(() => Math.random() - 0.5).slice(0, 4);
   challengeWord = pool[Math.floor(Math.random() * pool.length)];
-  document.getElementById("challenge-hash").textContent = await sha256Hex(challengeWord);
-  document.getElementById("challenge-result").textContent = "";
-  const box = document.getElementById("word-buttons");
-  box.innerHTML = "";
-  pool.forEach(w => {
-    const b = document.createElement("button");
-    b.textContent = w;
-    b.addEventListener("click", async () => {
-      const r = document.getElementById("challenge-result");
-      if (w === challengeWord) { r.textContent = `✔ Correct — sha256("${w}") matches. Same input, same hash, every time.`; r.style.color = "#39ff14"; }
-      else { r.textContent = `✘ Nope — sha256("${w}") starts ${(await sha256Hex(w)).slice(0,12)}… which doesn't match.`; r.style.color = "#e03616"; }
+  const hash = await sha256Hex(challengeWord);
+  if (gen === chGen) {
+    document.getElementById("challenge-hash").textContent = hash;
+    document.getElementById("challenge-result").textContent = "";
+    const box = document.getElementById("word-buttons");
+    box.innerHTML = "";
+    pool.forEach(w => {
+      const b = document.createElement("button");
+      b.textContent = w;
+      b.addEventListener("click", async () => {
+        const r = document.getElementById("challenge-result");
+        if (w === challengeWord) { r.textContent = `✔ Correct — sha256("${w}") matches. Same input, same hash, every time.`; r.style.color = "#39ff14"; }
+        else { r.textContent = `✘ Nope — sha256("${w}") starts ${(await sha256Hex(w)).slice(0,12)}… which doesn't match.`; r.style.color = "#e03616"; }
+      });
+      box.appendChild(b);
     });
-    box.appendChild(b);
-  });
+  }
 }
 document.getElementById("new-challenge").addEventListener("click", newChallenge);
 newChallenge();
 
 // --- EASTER EGG: hashing the word "password" anywhere in panel 1 ---
 document.getElementById("ht-input").addEventListener("input", (e) => {
-  if (e.target.value.toLowerCase() === "password")
+  if (e.target.value.toLowerCase() === "password") {
     document.getElementById("pw-verdict").textContent = "👀 Really? REALLY, McFly?";
+    document.getElementById("pw-verdict").style.color = "#ff8c00";
+    document.getElementById("pw-time").textContent = "—";
+  }
 });
 </script>
 </body>
