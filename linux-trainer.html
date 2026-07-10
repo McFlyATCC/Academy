@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux Command Trainer — McFly Academy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Share Tech Mono', monospace;
+    background: linear-gradient(135deg, #0d0d10 0%, #0a1a0a 100%);
+    min-height: 100vh; display: flex; justify-content: center; align-items: flex-start;
+    padding: 30px 20px; color: #39ff14; margin: 0;
+  }
+  .console {
+    width: 100%; max-width: 760px; background: #050805;
+    border: 2px solid #39ff14; border-radius: 14px; padding: 30px;
+    box-shadow: 0 0 40px rgba(57,255,20,0.15), inset 0 0 60px rgba(0,0,0,0.8);
+  }
+  /* subtle CRT scanlines */
+  .console { background-image: repeating-linear-gradient(0deg, rgba(57,255,20,0.03) 0 1px, transparent 1px 3px); }
+  .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f7a1f; padding-bottom: 14px; margin-bottom: 20px; }
+  h1 { font-family: 'Orbitron', sans-serif; font-size: 1.3em; margin: 0; letter-spacing: 2px; text-shadow: 0 0 8px rgba(57,255,20,0.6); }
+  .home-btn { color: #a8adb8; text-decoration: none; border: 1px solid #3a3e46; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; font-size: 0.9em; }
+  .home-btn:hover { color: #39ff14; border-color: #39ff14; }
+  .scoreboard { display: flex; gap: 24px; justify-content: center; margin-bottom: 18px; font-size: 0.95em; color: #a8adb8; }
+  .scoreboard b { color: #39ff14; }
+  .task-box { background: #0a120a; border: 1px solid #1f7a1f; border-radius: 10px; padding: 18px; margin-bottom: 16px; min-height: 48px; font-size: 1.05em; line-height: 1.5; }
+  .prompt-row { display: flex; align-items: center; gap: 8px; background: #000; border: 1px solid #1f7a1f; border-radius: 8px; padding: 10px 14px; }
+  .prompt-row .ps1 { color: #ff8c00; white-space: nowrap; }
+  #cmd-input { flex: 1; background: transparent; border: none; outline: none; color: #39ff14; font-family: inherit; font-size: 1.05em; caret-color: #39ff14; }
+  #feedback { margin-top: 16px; min-height: 70px; padding: 12px; border-radius: 8px; line-height: 1.5; }
+  #feedback.ok  { background: rgba(57,255,20,0.08); border: 1px solid #1f7a1f; color: #39ff14; }
+  #feedback.bad { background: rgba(224,54,22,0.10); border: 1px solid #7a1d0c; color: #ff9c8a; }
+  .btn-row { margin-top: 16px; display: flex; gap: 10px; }
+  button { font-family: inherit; background: #0e3d0e; color: #39ff14; border: 1px solid #39ff14; border-radius: 8px; padding: 10px 18px; cursor: pointer; font-size: 0.95em; }
+  button:hover { background: #1f7a1f; }
+  button:disabled { opacity: 0.4; cursor: default; }
+</style>
+</head>
+<body>
+<div class="console">
+  <div class="header-row">
+    <h1>🖥️ ONBOARD COMPUTER — COMMAND TRAINER</h1>
+    <a href="index.html" class="home-btn">← Hub</a>
+  </div>
+  <div class="scoreboard">
+    <span>SCORE <b id="score">0</b></span>
+    <span>STREAK <b id="streak">0</b></span>
+    <span>QUESTION <b id="qnum">1</b>/<b id="qtotal">?</b></span>
+  </div>
+  <div class="task-box" id="task-text"></div>
+  <div class="prompt-row">
+    <span class="ps1">marty@delorean:~$</span>
+    <input id="cmd-input" autocomplete="off" spellcheck="false" autofocus>
+  </div>
+  <div id="feedback"></div>
+  <div class="btn-row">
+    <button id="submit-btn">Execute ⏎</button>
+    <button id="skip-btn">Show Answer</button>
+  </div>
+</div>
+
+<script>
+// Each question: task text, accepted answer variants (compared after normalization),
+// canonical answer to display, and a one-line explanation.
+const QUESTIONS = [
+  { task: "Print the full path of the directory you're currently in.",
+    accept: ["pwd"], answer: "pwd", why: "pwd = print working directory." },
+  { task: "List ALL files in the current directory, including hidden ones.",
+    accept: ["ls -a", "ls -la", "ls -al", "ls --all", "ls -a"], answer: "ls -a",
+    why: "-a shows dotfiles; -la adds the long listing." },
+  { task: "Jump straight to your home directory.",
+    accept: ["cd", "cd ~", "cd $home"], answer: "cd ~", why: "cd with no argument (or ~) goes home." },
+  { task: "Make the file script.sh executable.",
+    accept: ["chmod +x script.sh", "chmod u+x script.sh", "chmod a+x script.sh"],
+    answer: "chmod +x script.sh", why: "chmod +x adds the execute bit." },
+  { task: "Create a directory named timeline.",
+    accept: ["mkdir timeline"], answer: "mkdir timeline", why: "mkdir makes directories." },
+  { task: "Create nested directories 1985/hill-valley in one command.",
+    accept: ["mkdir -p 1985/hill-valley"], answer: "mkdir -p 1985/hill-valley",
+    why: "-p creates parent directories as needed." },
+  { task: "Copy plutonium.txt to a new file named backup.txt.",
+    accept: ["cp plutonium.txt backup.txt"], answer: "cp plutonium.txt backup.txt",
+    why: "cp source destination." },
+  { task: "Move draft.txt into the docs directory.",
+    accept: ["mv draft.txt docs/", "mv draft.txt docs"], answer: "mv draft.txt docs/",
+    why: "mv moves (or renames) files." },
+  { task: "Delete the file oldnews.txt.",
+    accept: ["rm oldnews.txt"], answer: "rm oldnews.txt", why: "rm removes files — no trash, no undo." },
+  { task: "Delete the directory junk and everything inside it.",
+    accept: ["rm -r junk", "rm -rf junk", "rm -r junk/", "rm -rf junk/"], answer: "rm -r junk",
+    why: "-r recurses into directories; -f skips prompts." },
+  { task: "Display the entire contents of notes.txt in the terminal.",
+    accept: ["cat notes.txt"], answer: "cat notes.txt", why: "cat concatenates files to stdout." },
+  { task: "Show only the FIRST 5 lines of log.txt.",
+    accept: ["head -5 log.txt", "head -n 5 log.txt", "head -n5 log.txt"], answer: "head -n 5 log.txt",
+    why: "head shows the top of a file; -n sets the line count." },
+  { task: "Show only the LAST 5 lines of log.txt.",
+    accept: ["tail -5 log.txt", "tail -n 5 log.txt", "tail -n5 log.txt"], answer: "tail -n 5 log.txt",
+    why: "tail shows the end of a file." },
+  { task: "Watch log.txt live as new lines are appended.",
+    accept: ["tail -f log.txt"], answer: "tail -f log.txt", why: "-f follows the file as it grows." },
+  { task: "Find all files under /home owned by the user marty.",
+    accept: ["find /home -user marty"], answer: "find /home -user marty",
+    why: "find <path> -user <name> filters by owner." },
+  { task: "Search cars.txt for lines containing the text delorean.",
+    accept: ["grep delorean cars.txt", "grep \"delorean\" cars.txt", "grep 'delorean' cars.txt"],
+    answer: "grep delorean cars.txt", why: "grep pattern file." },
+  { task: "Search parts.txt for the text flux, ignoring upper/lower case.",
+    accept: ["grep -i flux parts.txt", "grep -i \"flux\" parts.txt", "grep -i 'flux' parts.txt"],
+    answer: "grep -i flux parts.txt", why: "-i = case-insensitive." },
+  { task: "Show ALL running processes on the system (BSD style).",
+    accept: ["ps aux", "ps -ef"], answer: "ps aux", why: "ps aux (BSD) or ps -ef (System V)." },
+  { task: "Politely terminate the process with PID 1985.",
+    accept: ["kill 1985"], answer: "kill 1985", why: "kill sends SIGTERM by default." },
+  { task: "Force-kill the unresponsive process with PID 1955.",
+    accept: ["kill -9 1955", "kill -kill 1955", "kill -sigkill 1955"], answer: "kill -9 1955",
+    why: "-9 = SIGKILL, cannot be caught or ignored." },
+  { task: "Create a new user account named biff (you have admin rights).",
+    accept: ["sudo useradd biff", "useradd biff", "sudo adduser biff", "adduser biff"],
+    answer: "sudo useradd biff", why: "useradd is the low-level tool; adduser is the friendly wrapper." },
+  { task: "Set a new password for the user marty (as admin).",
+    accept: ["sudo passwd marty", "passwd marty"], answer: "sudo passwd marty",
+    why: "passwd <user> changes that user's password." },
+  { task: "Add marty to the wheel group WITHOUT removing his other groups.",
+    accept: ["sudo usermod -ag wheel marty", "usermod -ag wheel marty", "sudo usermod -a -g wheel marty", "usermod -a -g wheel marty"],
+    answer: "sudo usermod -aG wheel marty", why: "-aG appends a supplementary group; forgetting -a REPLACES groups." },
+  { task: "Show disk space usage for all filesystems in human-readable units.",
+    accept: ["df -h"], answer: "df -h", why: "df = disk free; -h = human-readable (G/M/K)." },
+  { task: "Show a long listing so you can read each file's permissions.",
+    accept: ["ls -l", "ls -la", "ls -al"], answer: "ls -l", why: "The first column of ls -l is the permission string." },
+  { task: "Print the username you are currently logged in as.",
+    accept: ["whoami"], answer: "whoami", why: "whoami prints the effective user." },
+];
+
+let order = [...QUESTIONS].sort(() => Math.random() - 0.5);
+let idx = 0, score = 0, streak = 0, answered = false;
+
+// Normalize: trim, collapse runs of whitespace, lowercase.
+// (Real Linux is case-sensitive, but lowercasing forgives shift-key slips;
+// every accept-variant is already lowercase.)
+const norm = s => s.trim().replace(/\s+/g, " ").toLowerCase();
+
+function render() {
+  document.getElementById("task-text").textContent = order[idx].task;
+  document.getElementById("qnum").textContent = idx + 1;
+  document.getElementById("qtotal").textContent = order.length;
+  document.getElementById("score").textContent = score;
+  document.getElementById("streak").textContent = streak;
+  const f = document.getElementById("feedback");
+  f.className = ""; f.textContent = "";
+  const inp = document.getElementById("cmd-input");
+  inp.value = ""; inp.focus();
+  document.getElementById("submit-btn").textContent = "Execute ⏎";
+  answered = false;
+}
+
+function next() { idx = (idx + 1) % order.length; if (idx === 0) order.sort(() => Math.random() - 0.5); render(); }
+
+function submit() {
+  if (answered) { next(); return; }          // second press = next question
+  const q = order[idx];
+  const given = norm(document.getElementById("cmd-input").value);
+  const f = document.getElementById("feedback");
+
+  // Easter egg
+  if (given === "sudo make me a sandwich") { f.className = "ok"; f.textContent = "🥪 Okay. (xkcd 149 — with great power comes great sandwiches.)"; return; }
+  if (given === "") { f.className = "bad"; f.textContent = "Type a command first, McFly."; return; }
+
+  if (q.accept.map(norm).includes(given)) {
+    score++; streak++;
+    f.className = "ok";
+    f.textContent = `✔ CORRECT — ${q.why}` + (streak >= 3 ? `  🔥 ${streak} streak!` : "");
+  } else {
+    streak = 0;
+    f.className = "bad";
+    f.textContent = `✘ Not quite. Expected: ${q.answer}\n${q.why}`;
+  }
+  document.getElementById("score").textContent = score;
+  document.getElementById("streak").textContent = streak;
+  document.getElementById("submit-btn").textContent = "Next ▶";
+  answered = true;
+}
+
+document.getElementById("submit-btn").addEventListener("click", submit);
+document.getElementById("cmd-input").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+document.getElementById("skip-btn").addEventListener("click", () => {
+  const q = order[idx], f = document.getElementById("feedback");
+  streak = 0;
+  f.className = "bad"; f.textContent = `Answer: ${q.answer}\n${q.why}`;
+  document.getElementById("streak").textContent = streak;
+  document.getElementById("submit-btn").textContent = "Next ▶";
+  answered = true;
+});
+
+render();
+</script>
+</body>
+</html>
