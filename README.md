@@ -22,3 +22,4 @@ Inspired by the structure of [DrGopher9-Academy](https://github.com/DrGopher9).
 | Linux Command Trainer | `linux-trainer.html` | Files, permissions, users, processes — type-the-command drills |
 | Hash Lab | `hash-lab.html` | Hashing vs. encoding, password strength, hash matching |
 | VM Console | `vm-console.html` | VM lifecycle, service management, Shared Responsibility Model |
+| CIA Triad Trainer | `triad-trainer.html` | Classifying incidents as confidentiality, integrity, or availability violations |
