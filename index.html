@@ -451,6 +451,173 @@
             display: flex;
         }
 
+        /* ------------------------------------------------------------------
+           Easter eggs. Everything below is inert until a visitor trips one.
+           Five are hidden on this page; the console explains them.
+           ------------------------------------------------------------------ */
+
+        #egg-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 26px;
+            transform: translateX(-50%) translateY(140%);
+            max-width: min(460px, calc(100vw - 32px));
+            background: #242424;
+            color: #ffffff;
+            border-left: 6px solid var(--atcc-red);
+            border-radius: 9px;
+            padding: 14px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            font-size: 0.97rem;
+            line-height: 1.45;
+            transition: transform 0.4s ease;
+        }
+
+        #egg-toast.is-up {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #egg-toast .egg-count {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #b9bcc1;
+        }
+
+        #egg-badge {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 199;
+            display: none;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--atcc-red);
+            border-radius: 8px;
+            padding: 7px 13px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        #egg-badge.is-shown {
+            display: block;
+        }
+
+        /* 1 — 88mph: the closing banner becomes a time-circuit readout */
+
+        .circuits {
+            display: grid;
+            gap: 5px;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+        .circuits span {
+            display: block;
+            letter-spacing: 2px;
+            font-size: 0.95rem;
+        }
+
+        .circuits .c-label {
+            font-size: 0.66rem;
+            letter-spacing: 2px;
+            color: #b9bcc1;
+            text-transform: uppercase;
+        }
+
+        .c-red {
+            color: #ff5b47;
+        }
+
+        .c-green {
+            color: #46e02a;
+        }
+
+        .c-amber {
+            color: #ffab2e;
+        }
+
+        body.is-flashing {
+            animation: egg-flash 0.7s linear;
+        }
+
+        @keyframes egg-flash {
+            0%, 100% { filter: brightness(1); }
+            12% { filter: brightness(2.6); }
+            26% { filter: brightness(1); }
+            38% { filter: brightness(2); }
+        }
+
+        /* 2 — the BELIEVE sign */
+
+        #believe-sign {
+            position: absolute;
+            top: -18px;
+            right: 24px;
+            z-index: 5;
+            background: #f5c518;
+            color: #1a1a1a;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 6px;
+            text-align: center;
+            padding: 14px 26px;
+            border: 3px solid #1a1a1a;
+            transform: rotate(-3deg);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+            cursor: pointer;
+            animation: believe-drop 0.5s ease-out;
+        }
+
+        #believe-sign::before,
+        #believe-sign::after {
+            content: "";
+            position: absolute;
+            top: -13px;
+            width: 42px;
+            height: 22px;
+            background: rgba(226, 226, 226, 0.85);
+            transform: rotate(-8deg);
+        }
+
+        #believe-sign::before {
+            left: -12px;
+        }
+
+        #believe-sign::after {
+            right: -12px;
+            transform: rotate(8deg);
+        }
+
+        #believe-sign small {
+            display: block;
+            margin-top: 3px;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            font-weight: 400;
+            opacity: 0.72;
+        }
+
+        @keyframes believe-drop {
+            from { transform: rotate(-3deg) translateY(-26px); opacity: 0; }
+            to { transform: rotate(-3deg) translateY(0); opacity: 1; }
+        }
+
+        /* 3 — the record cueing up before the redirect */
+
+        .is-cueing {
+            animation: cue-spin 1.1s linear infinite;
+        }
+
+        @keyframes cue-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(2deg); }
+        }
+
         @media (min-width: 801px) {
             footer p {
                 white-space: nowrap;
@@ -463,8 +630,15 @@
             }
 
             .teach-tags li,
-            .photo {
+            .photo,
+            #egg-toast {
                 transition: none;
+            }
+
+            body.is-flashing,
+            #believe-sign,
+            .is-cueing {
+                animation: none;
             }
         }
 
@@ -859,6 +1033,9 @@
 
     </div>
 
+    <div id="egg-toast" role="status" aria-live="polite"></div>
+    <div id="egg-badge" aria-hidden="true"></div>
+
     <script>
         // Any image whose file isn't in assets/ yet collapses to a dashed
         // placeholder box instead of a broken-image icon. Once the file exists
@@ -870,6 +1047,289 @@
             }
             img.addEventListener("error", flag);
         });
+    </script>
+
+    <script>
+        /* =================================================================
+           FIVE EASTER EGGS
+
+             1  type 88mph                     Back to the Future
+             2  click the headshot five times  Ted Lasso
+             3  hover the DJ fact              Rick Astley, at speed
+             4  select the words "Professor McFly"
+             5  run believe() in the console
+
+           Each is found a different way. Progress is kept in localStorage so
+           a student can come back to it, and every toast states the total.
+           ================================================================= */
+
+        (function () {
+            "use strict";
+
+            const TOTAL = 5;
+            const STORE = "mcfly-academy-eggs";
+
+            const toast = document.getElementById("egg-toast");
+            const badge = document.getElementById("egg-badge");
+
+            const HINTS = {
+                mph: "1. Doc Brown named a speed. Type it — digits first.",
+                believeSign: "2. The guy in the headshot doesn't mind a few clicks. Five, say.",
+                rickroll: "3. Rest on the fact about the DJ and let him cue a record up. He commits.",
+                chicken: "4. Highlight the name you'd use to keep it semi-professional.",
+                console: "5. You're already here. Run believe()."
+            };
+
+            function load() {
+                try {
+                    const raw = window.localStorage.getItem(STORE);
+                    return new Set(raw ? JSON.parse(raw) : []);
+                } catch (err) {
+                    return new Set();
+                }
+            }
+
+            function save(set) {
+                try {
+                    window.localStorage.setItem(STORE, JSON.stringify([...set]));
+                } catch (err) {
+                    /* private browsing — the hunt just won't persist */
+                }
+            }
+
+            const found = load();
+
+            function paintBadge() {
+                if (!found.size) {
+                    return;
+                }
+                badge.textContent = "Easter eggs " + found.size + " / " + TOTAL;
+                badge.classList.add("is-shown");
+            }
+
+            let toastTimer;
+
+            function say(message, sub) {
+                toast.innerHTML = "";
+                const line = document.createElement("div");
+                line.innerHTML = message;
+                toast.appendChild(line);
+                if (sub) {
+                    const count = document.createElement("span");
+                    count.className = "egg-count";
+                    count.textContent = sub;
+                    toast.appendChild(count);
+                }
+                toast.classList.add("is-up");
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function () {
+                    toast.classList.remove("is-up");
+                }, 6500);
+            }
+
+            // Returns false when this egg was already in the bag.
+            function claim(id, message) {
+                const fresh = !found.has(id);
+                found.add(id);
+                save(found);
+                paintBadge();
+                if (found.size === TOTAL && fresh) {
+                    say(
+                        message + "<br><br><strong>That's all five.</strong> " +
+                        "Be curious, not judgmental.",
+                        "5 of 5 — hunt complete"
+                    );
+                } else {
+                    say(
+                        message,
+                        fresh
+                            ? "Easter egg " + found.size + " of " + TOTAL +
+                              " — " + (TOTAL - found.size) + " still hidden"
+                            : "Already found — " + found.size + " of " + TOTAL
+                    );
+                }
+                logHints();
+                return fresh;
+            }
+
+            /* --- 1 --- type 88mph ------------------------------------- */
+
+            const banner = document.querySelector(".closing-banner");
+            let buffer = "";
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key.length !== 1) {
+                    return;
+                }
+                buffer = (buffer + event.key.toLowerCase()).slice(-12);
+
+                if (buffer.endsWith("88mph")) {
+                    buffer = "";
+                    timeTravel();
+                }
+            });
+
+            function timeTravel() {
+                document.body.classList.remove("is-flashing");
+                void document.body.offsetWidth;
+                document.body.classList.add("is-flashing");
+                setTimeout(function () {
+                    document.body.classList.remove("is-flashing");
+                }, 800);
+
+                if (banner && !banner.dataset.original) {
+                    banner.dataset.original = banner.innerHTML;
+                    const now = new Date();
+                    const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                                    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+                    const pad = function (v) { return String(v).padStart(2, "0"); };
+                    const present = MONTHS[now.getMonth()] + " " + pad(now.getDate()) +
+                        " " + now.getFullYear() + "  " + pad(now.getHours()) +
+                        ":" + pad(now.getMinutes());
+
+                    banner.innerHTML =
+                        '<div class="circuits">' +
+                        '<span class="c-label">Destination Time</span>' +
+                        '<span class="c-red">OCT 26 1985  01:21</span>' +
+                        '<span class="c-label">Present Time</span>' +
+                        '<span class="c-green">' + present + '</span>' +
+                        '<span class="c-label">Last Time Departed</span>' +
+                        '<span class="c-amber">NOV 05 1955  06:15</span>' +
+                        '</div>';
+
+                    setTimeout(function () {
+                        banner.innerHTML = banner.dataset.original;
+                        delete banner.dataset.original;
+                    }, 9000);
+                }
+
+                claim("mph", "&#9889; <strong>Temporal displacement achieved.</strong> " +
+                    "If my calculations are correct, you just hit 88.");
+            }
+
+            /* --- 2 --- click the headshot five times ------------------- */
+
+            const headshot = document.querySelector(".headshot");
+            const hero = document.querySelector(".hero");
+            let clicks = 0;
+            let clickTimer;
+
+            if (headshot && hero) {
+                headshot.addEventListener("click", function () {
+                    clicks += 1;
+                    clearTimeout(clickTimer);
+                    clickTimer = setTimeout(function () { clicks = 0; }, 2500);
+
+                    if (clicks < 5) {
+                        return;
+                    }
+                    clicks = 0;
+
+                    if (document.getElementById("believe-sign")) {
+                        return;
+                    }
+                    const sign = document.createElement("div");
+                    sign.id = "believe-sign";
+                    sign.innerHTML = "BELIEVE<small>click to take it down</small>";
+                    sign.addEventListener("click", function () { sign.remove(); });
+                    hero.appendChild(sign);
+
+                    claim("believeSign", "&#128220; <strong>BELIEVE.</strong> " +
+                        "Taped it over the hero card, same as the locker room.");
+                });
+            }
+
+            /* --- 3 --- hover the DJ fact ------------------------------- */
+
+            const djFact = document.querySelector(".random-fact");
+            let dwell;
+
+            if (djFact) {
+                djFact.addEventListener("mouseenter", function () {
+                    dwell = setTimeout(function () {
+                        // Only the first find actually leaves the page. After
+                        // that, resting your mouse here would boot you to
+                        // YouTube every single time — including for Matt.
+                        const first = !found.has("rickroll");
+                        djFact.classList.add("is-cueing");
+                        claim("rickroll", first
+                            ? "&#127911; <strong>The DJ is cueing something up...</strong>"
+                            : "&#127911; <strong>Never gonna give you up.</strong> " +
+                              "You already fell for this one.");
+
+                        if (!first) {
+                            djFact.classList.remove("is-cueing");
+                            return;
+                        }
+                        setTimeout(function () {
+                            window.location.href =
+                                "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+                        }, 1800);
+                    }, 3000);
+                });
+
+                djFact.addEventListener("mouseleave", function () {
+                    clearTimeout(dwell);
+                });
+            }
+
+            /* --- 4 --- select "Professor McFly" ------------------------ */
+
+            document.addEventListener("selectionchange", function () {
+                // selectionchange fires on every mouse move during a drag, so
+                // bail once this one is in the bag rather than spamming toasts.
+                if (found.has("chicken")) {
+                    return;
+                }
+                const text = String(window.getSelection());
+                if (text.toLowerCase().includes("professor mcfly")) {
+                    claim("chicken", "&#128020; <strong>Nobody calls me chicken.</strong> " +
+                        "Professor McFly it is.");
+                }
+            });
+
+            /* --- 5 --- run believe() in the console -------------------- */
+
+            window.believe = function () {
+                claim("console", "&#128187; <strong>You opened the console.</strong> " +
+                    "Good instinct. That's how most of this job starts.");
+                return "Believe.";
+            };
+
+            /* --- the console itself ----------------------------------- */
+
+            function logHints() {
+                const remaining = Object.keys(HINTS).filter(function (id) {
+                    return !found.has(id);
+                });
+
+                console.log(
+                    "%c" + found.size + " of " + TOTAL + " easter eggs found.",
+                    "font-size:14px;font-weight:bold;color:#ed1b2f"
+                );
+
+                if (!remaining.length) {
+                    console.log("All five. Be curious, not judgmental.");
+                    return;
+                }
+                console.log("Still hidden:");
+                remaining.forEach(function (id) {
+                    console.log("   " + HINTS[id]);
+                });
+            }
+
+            console.log(
+                "%c\n" +
+                "   ___________________________\n" +
+                "  |   B  E  L  I  E  V  E     |\n" +
+                "  |___________________________|\n" +
+                "      88 MPH  ///  1.21 GW\n",
+                "color:#ed1b2f;font-weight:bold"
+            );
+
+            paintBadge();
+            logHints();
+        }());
     </script>
 
 </body>
